@@ -22,3 +22,30 @@ Update hanya berdasarkan dokumen resmi. Jangan menebak angka HPE, tarif Bea Kelu
 2. Di GitHub, buka Settings > Pages.
 3. Pilih branch dan folder yang berisi `tax-levy-sawit`, atau pindahkan isi folder ini ke root repository jika ingin URL root.
 4. Setelah deploy via HTTPS, `manifest.json` dan `service-worker.js` akan aktif otomatis.
+
+## Backend Google Apps Script
+
+File backend tersedia di `apps-script/Code.gs`.
+
+Setup ringkas:
+
+1. Buat Google Spreadsheet untuk database transaksi.
+2. Buka Extensions > Apps Script.
+3. Salin `apps-script/Code.gs` dan `apps-script/appsscript.json`.
+4. Di Apps Script, buka Project Settings > Script properties.
+5. Tambahkan `ADMIN_PASSWORD` dengan nilai password admin backend.
+6. Tambahkan `SPREADSHEET_ID` jika script tidak terikat langsung ke Spreadsheet.
+7. Jalankan fungsi `setupBackend()` sekali untuk membuat sheet `Transactions`, `MasterData`, dan `AuditLog`.
+8. Deploy > New deployment > Web app.
+
+Endpoint:
+
+- `GET ?action=health`
+- `GET ?action=transactions&limit=100`
+- `GET ?action=master`
+- `POST {"action":"appendTransaction","transaction":{...}}`
+- `POST {"action":"deleteTransaction","id":"..."}`
+- `POST {"action":"clearTransactions","adminPassword":"..."}`
+- `POST {"action":"saveMasterData","adminPassword":"...","data":{...}}`
+
+Catatan: frontend saat ini tetap offline-first dan belum otomatis mengirim transaksi ke backend.
