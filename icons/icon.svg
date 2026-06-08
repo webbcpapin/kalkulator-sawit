@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Tax Levy Sawit">
+  <rect width="512" height="512" rx="96" fill="#1f7a3a"/>
+  <path d="M256 88c-72 36-112 92-112 158 0 77 50 137 112 178 62-41 112-101 112-178 0-66-40-122-112-158Z" fill="#e9f6ee"/>
+  <path d="M256 138v246M192 230c42 4 70 20 64 72M320 230c-42 4-70 20-64 72" fill="none" stroke="#1f7a3a" stroke-width="24" stroke-linecap="round"/>
+  <path d="M170 392h172" stroke="#17321f" stroke-width="28" stroke-linecap="round"/>
+</svg>
