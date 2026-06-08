@@ -1,4 +1,4 @@
-const CACHE_NAME = "tax-levy-sawit-v3-2-static-v2";
+const CACHE_NAME = "tax-levy-sawit-v3-2-static-v3";
 const OFFLINE_ASSETS = [
   "./",
   "./index.html",
