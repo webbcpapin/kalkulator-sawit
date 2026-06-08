@@ -239,6 +239,12 @@
       padding: 12px;
       line-height: 1.45;
     }
+    .admin-panel {
+      max-width: 520px;
+    }
+    .admin-status {
+      margin-top: 12px;
+    }
     @media (max-width: 980px) {
       .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
       header h1 { font-size: 20px; }
@@ -275,6 +281,7 @@
       <button class="tab" data-tab="master">Master Data</button>
       <button class="tab" data-tab="regulasi">Regulasi</button>
       <button class="tab" data-tab="validasi">Validasi</button>
+      <button class="tab" data-tab="admin">Login Admin</button>
     </div>
 
     <section id="calc" class="tab-panel active">
@@ -463,6 +470,38 @@
         <div id="validationBox" class="grid grid-3"></div>
       </div>
     </section>
+
+    <section id="admin" class="tab-panel">
+      <div class="card admin-panel">
+        <div class="section-title">
+          <h2>Login Admin</h2>
+          <span id="adminBadge" class="status warn">Belum login</span>
+        </div>
+        <div id="adminLoginBox">
+          <label>Password Admin</label>
+          <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Masukkan password" />
+          <div class="actions" style="margin-top:14px">
+            <button id="btnAdminLogin" type="button">Login</button>
+          </div>
+        </div>
+        <div id="adminPanel" style="display:none">
+          <p class="muted">Admin aktif untuk sesi browser ini. Tidak ada data login yang dikirim ke server.</p>
+          <div class="grid grid-2 admin-status">
+            <div class="kpi">
+              <div class="label">Transaksi lokal</div>
+              <div class="value" id="adminTxCount">0</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Bulan HPE aktif</div>
+              <div class="value" id="adminActiveMonth">-</div>
+            </div>
+          </div>
+          <div class="actions" style="margin-top:14px">
+            <button id="btnAdminLogout" type="button" class="secondary">Logout</button>
+          </div>
+        </div>
+      </div>
+    </section>
     <div class="footer-note">
       Pemberitahuan privasi: aplikasi ini bekerja secara lokal di browser. Data transaksi tidak dikirim ke server. Jika Mode Privat dinonaktifkan, riwayat nama eksportir disimpan di perangkat pengguna untuk autocomplete. Gunakan tombol Hapus Semua untuk menghapus transaksi lokal.
     </div>
@@ -475,6 +514,7 @@
       transactions: "sawitTaxLevyTransactions",
       exporters: "sawitTaxLevyEksportir"
     };
+    const ADMIN_PASSWORD = "beacukaipapin";
     const $ = (id) => document.getElementById(id);
     let transactions = loadTransactions();
     let lastResult = null;
@@ -913,9 +953,9 @@
         ["Total kewajiban", fmtUSD(total)],
         ["Transaksi", transactions.length],
         ["Perlu diperiksa", invalid],
-        ["Sumber data", DATA.generated_from],
       ];
       $("kpiBox").innerHTML = kpis.map(x => `<div class="kpi"><div class="label">${escapeHtml(x[0])}</div><div class="value">${escapeHtml(x[1])}</div></div>`).join("");
+      renderAdminStatus();
     }
 
     function makeTable(el, data, columns) {
@@ -951,6 +991,49 @@
           <div class="value">${c[1]}</div>
           <div class="muted">${escapeHtml(c[2])}</div>
         </div>`).join("");
+    }
+
+    function isAdminLoggedIn() {
+      try {
+        return sessionStorage.getItem("sawitTaxLevyAdmin") === "1";
+      } catch (err) {
+        return false;
+      }
+    }
+
+    function setAdminLoggedIn(value) {
+      try {
+        if (value) sessionStorage.setItem("sawitTaxLevyAdmin", "1");
+        else sessionStorage.removeItem("sawitTaxLevyAdmin");
+      } catch (err) {}
+    }
+
+    function renderAdminStatus() {
+      if (!$("adminBadge")) return;
+      const loggedIn = isAdminLoggedIn();
+      $("adminBadge").textContent = loggedIn ? "Admin aktif" : "Belum login";
+      $("adminBadge").className = "status " + (loggedIn ? "ok" : "warn");
+      $("adminLoginBox").style.display = loggedIn ? "none" : "block";
+      $("adminPanel").style.display = loggedIn ? "block" : "none";
+      $("adminTxCount").textContent = transactions.length;
+      $("adminActiveMonth").textContent = $("bulan") ? $("bulan").value : "-";
+    }
+
+    function loginAdmin() {
+      if ($("adminPassword").value === ADMIN_PASSWORD) {
+        setAdminLoggedIn(true);
+        $("adminPassword").value = "";
+        renderAdminStatus();
+        showToast("Login admin berhasil.", "ok");
+        return;
+      }
+      showToast("Password admin salah.", "bad");
+    }
+
+    function logoutAdmin() {
+      setAdminLoggedIn(false);
+      renderAdminStatus();
+      showToast("Admin sudah logout.", "ok");
     }
 
     function exportCsv() {
@@ -1033,6 +1116,11 @@
         showToast("Semua transaksi lokal sudah dihapus.", "ok");
       }
     });
+    $("btnAdminLogin").addEventListener("click", loginAdmin);
+    $("btnAdminLogout").addEventListener("click", logoutAdmin);
+    $("adminPassword").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") loginAdmin();
+    });
 
     fillSelects();
     syncPrivateMode();
@@ -1041,6 +1129,7 @@
     renderKpis();
     renderMasterTables();
     renderValidation();
+    renderAdminStatus();
     autoLookup();
     if ("serviceWorker" in navigator && location.protocol !== "file:") {
       navigator.serviceWorker.register("./service-worker.js").catch(() => {
